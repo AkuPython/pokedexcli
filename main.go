@@ -35,8 +35,13 @@ func main() {
 		},
 		"map": {
 			name:        "map",
-			description: "PokeAPI location-areas",
+			description: "PokeAPI location-areas, next page",
 			callback:    commandMap,
+		},
+		"mapb": {
+			name:        "mapb",
+			description: "PokeAPI location-areas, previous page",
+			callback:    commandMapBack,
 		},
 	}
 	scanner := bufio.NewScanner(os.Stdin)
@@ -86,6 +91,23 @@ func commandHelp() error {
 func commandMap() error {
 	endpoint := fmt.Sprintf("location-area/?offset=%v", mapOffset)
 	mapOffset += 20
+	data, err := pokeapi.MakeRequest(url, endpoint)
+	if err != nil {
+		return err
+	}
+	data_string := string(data[:])
+	fmt.Printf("location-area data\n====================\n%v====================\n", data_string)
+	return nil
+}
+
+func commandMapBack() error {
+	if mapOffset >= 40 {
+		mapOffset -= 40
+	} else {
+		fmt.Println("you're on the first page")
+		return fmt.Errorf("you're on the first page\n")
+	}
+	endpoint := fmt.Sprintf("location-area/?offset=%v", mapOffset)
 	data, err := pokeapi.MakeRequest(url, endpoint)
 	if err != nil {
 		return err
