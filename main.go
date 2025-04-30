@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"strings"
+	"github.com/AkuPython/pokedexcli/internal/pokeapi"
 )
 
 type cliCommand struct {
@@ -13,6 +14,10 @@ type cliCommand struct {
 	description string
 	callback    func() error
 }
+
+var url string = "https://pokeapi.co/api/v2/"
+var mapOffset int = 0
+
 
 var supportedCommands map[string]cliCommand
 
@@ -27,6 +32,11 @@ func main() {
 			name:        "exit",
 			description: "Exit the Pokedex",
 			callback:    commandExit,
+		},
+		"map": {
+			name:        "map",
+			description: "PokeAPI location-areas",
+			callback:    commandMap,
 		},
 	}
 	scanner := bufio.NewScanner(os.Stdin)
@@ -70,5 +80,17 @@ func commandHelp() error {
 	for _, c := range supportedCommands {
 		fmt.Printf("%v: %v\n", c.name, c.description)
 	}
+	return nil
+}
+
+func commandMap() error {
+	endpoint := fmt.Sprintf("location-area/?offset=%v", mapOffset)
+	mapOffset += 20
+	data, err := pokeapi.MakeRequest(url, endpoint)
+	if err != nil {
+		return err
+	}
+	data_string := string(data[:])
+	fmt.Printf("location-area data\n====================\n%v====================\n", data_string)
 	return nil
 }
