@@ -9,24 +9,24 @@ import (
 )
 
 type cliCommand struct {
-	name		string
-	description	string
-	callback	func() error
+	name        string
+	description string
+	callback    func() error
 }
 
 var supportedCommands map[string]cliCommand
 
-func main()  {
+func main() {
 	supportedCommands = map[string]cliCommand{
 		"help": {
-		name:		"help",
-		description:	"Displays a help message",
-		callback:	commandHelp,
+			name:        "help",
+			description: "Displays a help message",
+			callback:    commandHelp,
 		},
 		"exit": {
-		name:		"exit",
-		description:	"Exit the Pokedex",
-		callback:	commandExit,
+			name:        "exit",
+			description: "Exit the Pokedex",
+			callback:    commandExit,
 		},
 	}
 	scanner := bufio.NewScanner(os.Stdin)
@@ -43,7 +43,7 @@ func main()  {
 			continue
 		}
 		firstWord := words[0]
-		
+
 		if c, valid := supportedCommands[firstWord]; valid {
 			// fmt.Printf("command: %v -- %v\n", firstWord, c.description)
 			c.callback()
@@ -72,4 +72,3 @@ func commandHelp() error {
 	}
 	return nil
 }
-
