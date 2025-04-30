@@ -3,6 +3,7 @@ package pokeapi
 import (
 	"fmt"
 	"io"
+	"json"
 	"net/http"
 )
 
@@ -24,4 +25,12 @@ func MakeRequest(url, endpoint string) ([]byte, error) {
 	return data, nil
 }
 
+func Unmarshall(data []byte, T any) ([]any, error) {
+	unmarshalled := []any{}
+	err := json.Unmarshal(data, unmarshalled)
+	if err != nil {
+		return nil, err
+	}
+	return unmarshalled, nil
+}
 
