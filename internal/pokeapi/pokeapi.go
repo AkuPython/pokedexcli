@@ -1,10 +1,13 @@
 package pokeapi
 
 import (
+	"encoding/json"
 	"fmt"
 	"io"
-	"encoding/json"
 	"net/http"
+	"time"
+
+	"github.com/AkuPython/pokedexcli/internal/pokecache"
 )
 
 type LocationArea struct {
@@ -17,8 +20,21 @@ type LocationArea struct {
 	} `json:"results"`
 }
 
+
+var cache *pokecache.Cache
+
+func init() {
+	cache = pokecache.NewCache(5 * time.Second)
+}
+
 func MakeRequest(url, endpoint string) ([]byte, error) {
 	full_url := url + endpoint
+	
+	if val, found := cache.Get(full_url); found {
+		fmt.Println("Cache hit: ", full_url)
+		return val, nil
+	}
+
 	resp, err := http.Get(full_url)
 	if err != nil {
 		return nil, err
@@ -32,6 +48,7 @@ func MakeRequest(url, endpoint string) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
+	cache.Add(full_url, data)
 	return data, nil
 }
 

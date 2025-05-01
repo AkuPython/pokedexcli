@@ -24,7 +24,7 @@ func NewCache(interval time.Duration) *Cache {
 
 			cache.m.Lock()
 			for k, ce := range cache.ce {
-				if ce.createdAt.Add(interval).After(time.Now()) {
+				if ce.createdAt.Add(interval).Before(time.Now()) {
 					delete(cache.ce, k)
 				}
 			}
@@ -37,8 +37,7 @@ func NewCache(interval time.Duration) *Cache {
 func (c *Cache) Add(key string, val []byte) {
 	c.m.Lock()
 	defer c.m.Unlock()
-
-	c.ce[key] = cacheEntry{val: val}
+	c.ce[key] = cacheEntry{val: val, createdAt: time.Now()}
 }
 
 func (c *Cache) Get(key string) ([]byte, bool) {
