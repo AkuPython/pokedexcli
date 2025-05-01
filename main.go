@@ -93,10 +93,21 @@ func commandMap() error {
 	mapOffset += 20
 	data, err := pokeapi.MakeRequest(url, endpoint)
 	if err != nil {
+		fmt.Printf("ERROR making request to %v%v\n", url, endpoint)
 		return err
 	}
-	data_string := string(data[:])
-	fmt.Printf("location-area data\n====================\n%v====================\n", data_string)
+	var location_json pokeapi.LocationArea
+	err = pokeapi.Unmarshall(data, &location_json)
+	if err != nil {
+		fmt.Printf("ERROR unmarshalling: %v\n", err)
+		return err
+	}
+	// data_string := string(data[:])
+	fmt.Printf("location-area data - pg %v\n====================\n", mapOffset/20)
+	for _, v := range location_json.Results {
+		fmt.Printf("%v\n", v.Name)
+	}
+	fmt.Println("====================")
 	return nil
 }
 
@@ -107,12 +118,6 @@ func commandMapBack() error {
 		fmt.Println("you're on the first page")
 		return fmt.Errorf("you're on the first page\n")
 	}
-	endpoint := fmt.Sprintf("location-area/?offset=%v", mapOffset)
-	data, err := pokeapi.MakeRequest(url, endpoint)
-	if err != nil {
-		return err
-	}
-	data_string := string(data[:])
-	fmt.Printf("location-area data\n====================\n%v====================\n", data_string)
-	return nil
+	err := commandMap()
+	return err
 }

@@ -7,6 +7,16 @@ import (
 	"net/http"
 )
 
+type LocationArea struct {
+	Count    int    `json:"count"`
+	Next     string `json:"next"`
+	Previous string `json:"previous"`
+	Results  []struct {
+		Name string `json:"name"`
+		URL  string `json:"url"`
+	} `json:"results"`
+}
+
 func MakeRequest(url, endpoint string) ([]byte, error) {
 	full_url := url + endpoint
 	resp, err := http.Get(full_url)
@@ -25,12 +35,8 @@ func MakeRequest(url, endpoint string) ([]byte, error) {
 	return data, nil
 }
 
-func Unmarshall(data []byte, T any) ([]any, error) {
-	unmarshalled := []any{}
-	err := json.Unmarshal(data, unmarshalled)
-	if err != nil {
-		return nil, err
-	}
-	return unmarshalled, nil
+func Unmarshall(data []byte, dataType interface{}) error {
+	err := json.Unmarshal(data, dataType)
+	return err
 }
 
