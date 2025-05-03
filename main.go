@@ -9,10 +9,28 @@ import (
 	"github.com/AkuPython/pokedexcli/internal/pokeapi"
 )
 
+type valTypes int
+
+const (
+	name valTypes = iota
+	id
+)
+
+var valType = map[valTypes]string {
+	name:	"Name",
+	id:		"Id",
+}
+
 type cliCommand struct {
 	name        string
 	description string
 	callback    func() error
+}
+
+type nameOrId struct {
+	val_type	string
+	int_value	int
+	str_value	string
 }
 
 var url string = "https://pokeapi.co/api/v2/"
@@ -42,6 +60,11 @@ func main() {
 			name:        "mapb",
 			description: "PokeAPI location-areas, previous page",
 			callback:    commandMapBack,
+		},
+		"explore": {
+			name:        "explore",
+			description: "PokeAPI location-areas, specific name or id",
+			callback:    commandExplore,
 		},
 	}
 	scanner := bufio.NewScanner(os.Stdin)
@@ -96,7 +119,7 @@ func commandMap() error {
 		fmt.Printf("ERROR making request to %v%v\n", url, endpoint)
 		return err
 	}
-	var location_json pokeapi.LocationArea
+	var location_json pokeapi.LocationAreas
 	err = pokeapi.Unmarshall(data, &location_json)
 	if err != nil {
 		fmt.Printf("ERROR unmarshalling: %v\n", err)
@@ -120,4 +143,22 @@ func commandMapBack() error {
 	}
 	err := commandMap()
 	return err
+}
+
+func commandExplore() error {
+	endpoint := fmt.Sprintf("location-area/1/")
+	data, err := pokeapi.MakeRequest(url, endpoint)
+	if err != nil {
+		fmt.Printf("ERROR making request to %v%v\n", url, endpoint)
+		return err
+	}
+	// var location_json pokeapi.LocationArea
+	// err = pokeapi.Unmarshall(data, &location_json)
+	// if err != nil {
+	// 	fmt.Printf("ERROR unmarshalling: %v\n", err)
+	// 	return err
+	// }
+	// data_string := string(data[:])
+	fmt.Printf("location-area data\n====================\n%v\n", string(data))
+	return nil
 }
