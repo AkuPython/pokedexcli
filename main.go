@@ -9,28 +9,11 @@ import (
 	"github.com/AkuPython/pokedexcli/internal/pokeapi"
 )
 
-type valTypes int
-
-const (
-	name valTypes = iota
-	id
-)
-
-var valType = map[valTypes]string {
-	name:	"Name",
-	id:		"Id",
-}
 
 type cliCommand struct {
 	name        string
 	description string
-	callback    func() error
-}
-
-type nameOrId struct {
-	val_type	string
-	int_value	int
-	str_value	string
+	callback    func(*string) error
 }
 
 var url string = "https://pokeapi.co/api/v2/"
@@ -62,8 +45,8 @@ func main() {
 			callback:    commandMapBack,
 		},
 		"explore": {
-			name:        "explore",
-			description: "PokeAPI location-areas, specific name or id",
+			name:        "explore <area>",
+			description: "PokeAPI location-areas <area>, returns Pokemon in <area>",
 			callback:    commandExplore,
 		},
 	}
@@ -84,7 +67,14 @@ func main() {
 
 		if c, valid := supportedCommands[firstWord]; valid {
 			// fmt.Printf("command: %v -- %v\n", firstWord, c.description)
-			c.callback()
+			callbackWord := ""
+			if len(words) > 1 {
+				callbackWord = words[1]
+			}
+			err := c.callback(&callbackWord)
+			if err != nil {
+				fmt.Printf("%v", err)
+			}
 		} else {
 			fmt.Println("Unknown command")
 		}
@@ -97,21 +87,29 @@ func cleanInput(text string) []string {
 	return words
 }
 
-func commandExit() error {
+func commandExit(_ *string) error {
 	fmt.Println("Closing the Pokedex... Goodbye!")
 	os.Exit(0)
 	return nil
 }
 
-func commandHelp() error {
+func commandHelp(_ *string) error {
 	fmt.Printf("Welcome to the Pokedex!\nUsage:\n\n")
 	for _, c := range supportedCommands {
-		fmt.Printf("%v: %v\n", c.name, c.description)
+		tabs := "\t"
+		if len(c.name) < 5 {
+			tabs += "\t"
+		}
+		if len(c.name) < 10 {
+			tabs += "\t"
+		}
+
+		fmt.Printf("%v: %v%v\n", c.name, tabs, c.description)
 	}
 	return nil
 }
 
-func commandMap() error {
+func commandMap(_ *string) error {
 	endpoint := fmt.Sprintf("location-area/?offset=%v", mapOffset)
 	mapOffset += 20
 	data, err := pokeapi.MakeRequest(url, endpoint)
@@ -134,31 +132,38 @@ func commandMap() error {
 	return nil
 }
 
-func commandMapBack() error {
+func commandMapBack(_ *string) error {
 	if mapOffset >= 40 {
 		mapOffset -= 40
 	} else {
-		fmt.Println("you're on the first page")
 		return fmt.Errorf("you're on the first page\n")
 	}
-	err := commandMap()
+	workaround := ""
+	err := commandMap(&workaround)
 	return err
 }
 
-func commandExplore() error {
-	endpoint := fmt.Sprintf("location-area/1/")
+func commandExplore(area *string) error {
+	if *area == "" {
+		return fmt.Errorf("area not provided!\n")
+	}
+	endpoint := fmt.Sprintf("location-area/%v/", *area)
 	data, err := pokeapi.MakeRequest(url, endpoint)
 	if err != nil {
-		fmt.Printf("ERROR making request to %v%v\n", url, endpoint)
+		return fmt.Errorf("ERROR making request to %v%v\n", url, endpoint)
+	}
+	var location_json pokeapi.LocationArea
+	err = pokeapi.Unmarshall(data, &location_json)
+	if err != nil {
+		fmt.Printf("ERROR unmarshalling: %v\n", err)
 		return err
 	}
-	// var location_json pokeapi.LocationArea
-	// err = pokeapi.Unmarshall(data, &location_json)
-	// if err != nil {
-	// 	fmt.Printf("ERROR unmarshalling: %v\n", err)
-	// 	return err
-	// }
+	fmt.Printf("Pokemon in location-area%v\n====================\n", *area)
+	for _, v := range location_json.PokemonEncounters {
+		fmt.Printf("%v\n", v.Pokemon.Name)
+	}
+	fmt.Println("====================")
 	// data_string := string(data[:])
-	fmt.Printf("location-area data\n====================\n%v\n", string(data))
+	// fmt.Printf("location-area data\n====================\n%v\n", string(data))
 	return nil
 }
