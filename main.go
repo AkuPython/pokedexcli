@@ -64,6 +64,11 @@ func main() {
 			description: "Pokedex <Pokemon>, returns Pokemon details if Pokemon caught",
 			callback:    commandInspect,
 		},
+		"pokedex": {
+			name:        "pokedex",
+			description: "Pokedex, returns caught Pokemon",
+			callback:    commandPokedex,
+		},
 	}
 	scanner := bufio.NewScanner(os.Stdin)
 	for {
@@ -206,7 +211,7 @@ func commandCatch(pokemon *string) error {
 	experience := pokemon_json.BaseExperience
 	randInt := rand.Intn(experience)
 	// fmt.Printf("Values: %v, %v\n", experience, randInt)
-	if randInt > 40 {
+	if randInt < 40 {
 		fmt.Printf("%v was caught!\n", *pokemon)
 		pokedex[*pokemon] = pokemon_json
 	} else {
@@ -234,6 +239,18 @@ func commandInspect(pokemon *string) error  {
 	fmt.Println("Types:")
 	for _, v := range captured.Types {
 		fmt.Printf("  -%v\n", v.Type.Name)
+	}
+	return nil
+}
+
+func commandPokedex(_ *string) error  {
+	if len(pokedex) == 0 {
+		fmt.Println("Your Pokedex is empty...")
+		return nil
+	}
+	fmt.Println("Your Pokedex:")
+	for _, k := range pokedex {
+		fmt.Printf("  - %v\n", k.Name)
 	}
 	return nil
 }
