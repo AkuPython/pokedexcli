@@ -2,10 +2,12 @@ package main
 
 import (
 	"bufio"
+	"math/rand"
 	// "errors"
 	"fmt"
 	"os"
 	"strings"
+
 	"github.com/AkuPython/pokedexcli/internal/pokeapi"
 )
 
@@ -48,6 +50,11 @@ func main() {
 			name:        "explore <area>",
 			description: "PokeAPI location-areas <area>, returns Pokemon in <area>",
 			callback:    commandExplore,
+		},
+		"catch": {
+			name:        "catch <Pokemon>",
+			description: "PokeAPI Pokemon <Pokemon>, returns Pokemon details",
+			callback:    commandCatch,
 		},
 	}
 	scanner := bufio.NewScanner(os.Stdin)
@@ -161,6 +168,39 @@ func commandExplore(area *string) error {
 	fmt.Printf("Pokemon in location-area%v\n====================\n", *area)
 	for _, v := range location_json.PokemonEncounters {
 		fmt.Printf("%v\n", v.Pokemon.Name)
+	}
+	fmt.Println("====================")
+	// data_string := string(data[:])
+	// fmt.Printf("location-area data\n====================\n%v\n", string(data))
+	return nil
+}
+
+func commandCatch(pokemon *string) error {
+	if *pokemon == "" {
+		return fmt.Errorf("Pokemon not provided!\n")
+	}
+	endpoint := fmt.Sprintf("Pokemon/%v/", *pokemon)
+	data, err := pokeapi.MakeRequest(url, endpoint)
+	if err != nil {
+		return fmt.Errorf("ERROR making request to %v%v\n", url, endpoint)
+	}
+	var pokemon_json pokeapi.Pokemon
+	err = pokeapi.Unmarshall(data, &pokemon_json)
+	if err != nil {
+		fmt.Printf("ERROR unmarshalling: %v\n", err)
+		return err
+	}
+	// fmt.Printf("Pokemon %v\n====================\n", *area)
+	// for _, v := range location_json.PokemonEncounters {
+	// 	fmt.Printf("%v\n", v.Pokemon.Name)
+	// }
+	experience := pokemon_json.BaseExperience
+	r := rand.New(rand.NewSource(int64(experience)))
+	randInt := r.Int()
+	if randInt % 2 == 0 {
+		fmt.Println("Caught")
+	} else {
+		fmt.Println("Not Caught")
 	}
 	fmt.Println("====================")
 	// data_string := string(data[:])
