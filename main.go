@@ -3,6 +3,7 @@ package main
 import (
 	"bufio"
 	"math/rand"
+
 	// "errors"
 	"fmt"
 	"os"
@@ -18,13 +19,15 @@ type cliCommand struct {
 	callback    func(*string) error
 }
 
-var url string = "https://pokeapi.co/api/v2/"
-var mapOffset int = 0
+var url			string	= "https://pokeapi.co/api/v2/"
+var mapOffset	int		= 0
 
 
-var supportedCommands map[string]cliCommand
+var supportedCommands	map[string]cliCommand
+var pokedex				map[string]pokeapi.Pokemon
 
 func main() {
+	pokedex = make(map[string]pokeapi.Pokemon)
 	supportedCommands = map[string]cliCommand{
 		"help": {
 			name:        "help",
@@ -194,13 +197,15 @@ func commandCatch(pokemon *string) error {
 	// for _, v := range location_json.PokemonEncounters {
 	// 	fmt.Printf("%v\n", v.Pokemon.Name)
 	// }
+	fmt.Printf("Throwing a Pokeball at %v...\n", *pokemon)
 	experience := pokemon_json.BaseExperience
-	r := rand.New(rand.NewSource(int64(experience)))
-	randInt := r.Int()
-	if randInt % 2 == 0 {
-		fmt.Println("Caught")
+	randInt := rand.Intn(experience)
+	fmt.Printf("Values: %v, %v\n", experience, randInt)
+	if randInt > 40 {
+		fmt.Printf("%v was caught!\n", *pokemon)
+		pokedex[*pokemon] = pokemon_json
 	} else {
-		fmt.Println("Not Caught")
+		fmt.Printf("%v escaped!\n", *pokemon)
 	}
 	fmt.Println("====================")
 	// data_string := string(data[:])
