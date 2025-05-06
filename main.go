@@ -59,6 +59,11 @@ func main() {
 			description: "PokeAPI Pokemon <Pokemon>, returns Pokemon details",
 			callback:    commandCatch,
 		},
+		"inspect": {
+			name:        "inspect <Pokemon>",
+			description: "Pokedex <Pokemon>, returns Pokemon details if Pokemon caught",
+			callback:    commandInspect,
+		},
 	}
 	scanner := bufio.NewScanner(os.Stdin)
 	for {
@@ -200,7 +205,7 @@ func commandCatch(pokemon *string) error {
 	fmt.Printf("Throwing a Pokeball at %v...\n", *pokemon)
 	experience := pokemon_json.BaseExperience
 	randInt := rand.Intn(experience)
-	fmt.Printf("Values: %v, %v\n", experience, randInt)
+	// fmt.Printf("Values: %v, %v\n", experience, randInt)
 	if randInt > 40 {
 		fmt.Printf("%v was caught!\n", *pokemon)
 		pokedex[*pokemon] = pokemon_json
@@ -210,5 +215,25 @@ func commandCatch(pokemon *string) error {
 	fmt.Println("====================")
 	// data_string := string(data[:])
 	// fmt.Printf("location-area data\n====================\n%v\n", string(data))
+	return nil
+}
+
+func commandInspect(pokemon *string) error  {
+	captured, ok := pokedex[*pokemon]
+	if !ok {
+		fmt.Printf("you have not caught %v\n", *pokemon)
+		return nil
+	}
+	fmt.Println("Name: ", captured.Name)
+	fmt.Println("Height: ", captured.Height)
+	fmt.Println("Weight: ", captured.Weight)
+	fmt.Println("Stats:")
+	for _, v := range captured.Stats {
+		fmt.Printf("  -%v: %v\n", v.Stat.Name, v.BaseStat)
+	}
+	fmt.Println("Types:")
+	for _, v := range captured.Types {
+		fmt.Printf("  -%v\n", v.Type.Name)
+	}
 	return nil
 }
